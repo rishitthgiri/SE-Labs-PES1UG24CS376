@@ -5,6 +5,7 @@ skinparam actorStyle awesome
 
 actor "Student Member" as Student
 actor "Head Librarian" as Librarian
+actor "Campus SSO / Auth Server" as SSO
 
 rectangle "Digital Campus Library Reservation Gateway" {
   usecase "Search Catalog\n(by ISBN/Title/Author)" as UC_Search
@@ -34,6 +35,9 @@ Librarian --> UC_Checkout
 Librarian --> UC_Return
 Librarian --> UC_Reports
 Librarian --> UC_Override
+
+' Third actor: external system that services the Authenticate use case
+UC_Auth --> SSO
 
 ' Mandatory <<include>> relationship
 UC_Reserve .> UC_Auth : <<include>>

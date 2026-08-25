@@ -1,12 +1,16 @@
 # SE Lab — Digital Campus Library Reservation Gateway
 
-This folder contains the three lab deliverables. All artifacts are cross-consistent: the same 7 requirement IDs, the same use-case names, and the same `«include»`/`«extend»` relationships are used throughout.
+This folder contains the three lab deliverables, in the formats required by the handout (Lab 1: Requirements Engineering & UML Use-Case Modelling). All artifacts are cross-consistent: the same 7 requirement IDs, the same use-case names, and the same `«include»`/`«extend»` relationships are used throughout.
 
-## Contents
-- `requirements/requirements-table.md` — FR-001–FR-005, NFR-001–NFR-002 with ID, Type, Description, Priority, Acceptance Criteria, Rationale.
-- `uml/use-case-diagram.puml` — Editable PlantUML source.
-- `uml/use-case-diagram.svg` / `uml/use-case-diagram.png` — Rendered diagram (Student Member, Head Librarian; includes `«include»` and `«extend»`).
-- `use-case-specs/place-book-reservation-hold.md` — ~1-page flow spec for "Place Book Reservation/Hold," with one Alternate Flow (maximum reservation limit reached).
+## Deliverables (handout-required formats)
+- **Requirements Table (Word/Excel):** `requirements/requirements-table.docx` and `requirements/requirements-table.xlsx` — FR-001–FR-005, NFR-001–NFR-002, each with Req ID, Type, Description, Priority, Acceptance Criteria, Rationale.
+- **UML Use-Case Diagram (PDF):** `uml/use-case-diagram.pdf` — 3 actors (Student Member, Head Librarian, Campus SSO/Auth Server), ≥5 use cases, at least one `«include»` and one `«extend»`.
+- **Use-Case Flow Document (Word, 1 page):** `use-case-specs/place-book-reservation-hold.docx` — Main Success Scenario + one step-anchored Alternate Flow (4a. Maximum Reservation Limit Reached), for the core use case "Place Book Reservation/Hold."
+
+## Supplementary source files (not required, kept for convenience/editing)
+- `requirements/requirements-table.md`, `requirements/requirements-table.pdf`
+- `uml/use-case-diagram.puml` (editable PlantUML source), `.svg`, `.png`
+- `use-case-specs/place-book-reservation-hold.md`, `.pdf`
 
 ## Traceability Summary
 | Diagram Element | Requirement(s) |
