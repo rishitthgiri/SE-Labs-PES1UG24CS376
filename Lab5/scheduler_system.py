@@ -1,72 +1,94 @@
+"""Conference room and equipment scheduler."""
 import json
 from datetime import datetime
 
-# Global state
-reservations = {}
-equipment_pool = {"projector": 2, "microphone": 4, "webcam": 1}
-conflicts = []
-next_reservation = 1
+EQUIPMENT_STOCK = {"projector": 2, "microphone": 4, "webcam": 1}
 
 
-def schedule_room(room_id, time_slot, equipment_list=[]):
-    global next_reservation
-    for r in reservations:
-        booked = reservations[r]
-        if booked["room"] == room_id and booked["slot"] == time_slot:
-            conflicts.append("%s double-booked at %s" % (room_id, time_slot))
-    for e in equipment_list:
-        equipment_pool[e] = equipment_pool[e] - 1
-    reservations[next_reservation] = {
-        "room": room_id,
-        "slot": time_slot,
-        "equipment": equipment_list,
-    }
-    next_reservation += 1
-    return next_reservation - 1
+class Scheduler:
+    """Books rooms, allocates equipment and records double bookings."""
 
+    def __init__(self):
+        self.reservations = {}
+        self.equipment_pool = dict(EQUIPMENT_STOCK)
+        self.conflicts = []
+        self.next_reservation = 1
 
-def cancel_reservation(reservation_id):
-    try:
-        for e in reservations[reservation_id]["equipment"]:
-            equipment_pool[e] += 1
-        del reservations[reservation_id]
-    except KeyError:
-        print("Reservation", reservation_id, "not found; nothing cancelled.")
+    @staticmethod
+    def slot_hours(time_slot):
+        """Return the length in hours of a 'HH-HH' slot."""
+        start, end = str(time_slot).split("-")
+        hours = int(end) - int(start)
+        if hours <= 0:
+            raise ValueError(
+                f"Invalid slot '{time_slot}': end must be after start")
+        return hours
 
+    def schedule_room(self, room_id, time_slot, equipment_list=None):
+        """Book a room; return the reservation id, or None if rejected."""
+        equipment_list = equipment_list or []
+        try:
+            self.slot_hours(time_slot)
+        except ValueError as err:
+            print("Rejected:", err)
+            return None
+        for item in equipment_list:
+            if self.equipment_pool.get(item, 0) < 1:
+                print(f"Rejected: '{item}' unavailable for {room_id}")
+                return None
+        for booked in self.reservations.values():
+            if booked["room"] == room_id and booked["slot"] == time_slot:
+                self.conflicts.append(
+                    f"{room_id} double-booked at {time_slot}")
+        for item in equipment_list:
+            self.equipment_pool[item] -= 1
+        res_id = self.next_reservation
+        self.reservations[res_id] = {
+            "room": room_id,
+            "slot": time_slot,
+            "equipment": equipment_list,
+        }
+        self.next_reservation += 1
+        return res_id
 
-def slot_hours(time_slot):
-    start, end = time_slot.split("-")
-    return int(end) - int(start)
+    def cancel_reservation(self, reservation_id):
+        """Cancel a reservation and return its equipment to the pool."""
+        booking = self.reservations.pop(reservation_id, None)
+        if booking is None:
+            print("Reservation", reservation_id, "not found.")
+            return
+        for item in booking["equipment"]:
+            self.equipment_pool[item] += 1
 
+    def export_schedule(self, file="schedule.json"):
+        """Write all reservations to a JSON file."""
+        with open(file, "w", encoding="utf-8") as handle:
+            json.dump(self.reservations, handle)
 
-def export_schedule(file="schedule.json"):
-    f = open(file, "w")
-    f.write(json.dumps(reservations))
-    f.close()
-
-
-def logConflicts(file="conflicts.log"):
-    f = open(file, "a")
-    for c in conflicts:
-        f.write(str(datetime.now()) + " " + c + "\n")
-    f.close()
-    with open(file, "r") as log:
-        print(log.read(), end="")
+    def log_conflicts(self, file="conflicts.log"):
+        """Append conflicts to a log file and print the log."""
+        with open(file, "a", encoding="utf-8") as handle:
+            for conflict in self.conflicts:
+                handle.write(f"{datetime.now()} {conflict}\n")
+        with open(file, "r", encoding="utf-8") as handle:
+            print(handle.read(), end="")
 
 
 def main():
-    schedule_room("Board-1", "09-11")
-    schedule_room("Board-1", "09-11")
-    b = schedule_room("Huddle-3", "14-12")
-    schedule_room("Huddle-3", 1530)
-    print("Slot length for b:", slot_hours(reservations[b]["slot"]))
-    cancel_reservation(77)
+    """Run the demo."""
+    sched = Scheduler()
+    sched.schedule_room("Board-1", "09-11")
+    sched.schedule_room("Board-1", "09-11")
+    sched.schedule_room("Huddle-3", "14-12")
+    sched.schedule_room("Huddle-3", 1530)
+    sched.cancel_reservation(77)
     slot = input("Slot for Board-2, like 10-12 (Enter for 10-12): ") or "10-12"
-    schedule_room("Board-2", slot, ["projector", "webcam"])
-    export_schedule()
-    logConflicts()
-    print("Equipment left:", equipment_pool)
-    print("Reservations:", reservations)
+    sched.schedule_room("Board-2", slot, ["projector", "webcam"])
+    sched.export_schedule()
+    sched.log_conflicts()
+    print("Equipment left:", sched.equipment_pool)
+    print("Reservations:", sched.reservations)
 
 
-main()
+if __name__ == "__main__":
+    main()
