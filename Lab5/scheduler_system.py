@@ -1,5 +1,4 @@
 import json
-import os
 from datetime import datetime
 
 # Global state
@@ -24,8 +23,8 @@ def cancel_reservation(reservation_id):
         for e in reservations[reservation_id]["equipment"]:
             equipment_pool[e] += 1
         del reservations[reservation_id]
-    except:
-        pass
+    except KeyError:
+        print("Reservation", reservation_id, "not found; nothing cancelled.")
 
 def slot_hours(time_slot):
     start, end = time_slot.split("-")
@@ -40,7 +39,9 @@ def logConflicts(file="conflicts.log"):
     f = open(file, "a")
     for c in conflicts:
         f.write(str(datetime.now()) + " " + c + "\n")
-    os.system("cat " + file)
+    f.close()
+    with open(file, "r") as log:
+        print(log.read(), end="")
 
 def main():
     a = schedule_room("Board-1", "09-11")
